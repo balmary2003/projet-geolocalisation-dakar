@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ restaurant.nom }}</title>
+</head>
+<body>
+    <h1>{{ restaurant.nom }}</h1>
+    <p>{{ restaurant.description }}</p>
+    <p>📍 {{ restaurant.adresse }} | 📞 {{ restaurant.telephone }}</p>
+    <p>🕒 {{ restaurant.horaires }}</p>
+
+    <h2>Menu</h2>
+    <ul>
+        {% for item in menu_items %}
+        <li>
+            <strong>{{ item.nom }}</strong> — {{ item.prix }} FCFA<br>
+            {{ item.description }}
+        </li>
+        {% empty %}
+        <li>Aucun plat renseigné pour le moment.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Avis ({{ avis_list.count }})</h2>
+
+    {% for avis in avis_list %}
+        <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+            <strong>{{ avis.utilisateur.username }}</strong> — {{ avis.note }}/5 ⭐<br>
+            <p>{{ avis.commentaire }}</p>
+            <small>{{ avis.date_creation }}</small>
+        </div>
+    {% empty %}
+        <p>Aucun avis pour ce restaurant. Soyez le premier à en laisser un !</p>
+    {% endfor %}
+
+    <h3>{% if mon_avis %}Modifier mon avis{% else %}Laisser un avis{% endif %}</h3>
+
+    <form method="post" action="{% url 'ajouter_avis' restaurant.id %}">
+        {% csrf_token %}
+        <label for="note">Note :</label>
+        <select name="note" id="note" required>
+            <option value="5" {% if mon_avis.note == 5 %}selected{% endif %}>5 - Excellent</option>
+            <option value="4" {% if mon_avis.note == 4 %}selected{% endif %}>4 - Très bien</option>
+            <option value="3" {% if mon_avis.note == 3 %}selected{% endif %}>3 - Bien</option>
+            <option value="2" {% if mon_avis.note == 2 %}selected{% endif %}>2 - Moyen</option>
+            <option value="1" {% if mon_avis.note == 1 %}selected{% endif %}>1 - Mauvais</option>
+        </select><br><br>
+        <textarea name="commentaire" placeholder="Votre commentaire...">{% if mon_avis %}{{ mon_avis.commentaire }}{% endif %}</textarea><br><br>
+        <button type="submit">{% if mon_avis %}Modifier{% else %}Publier{% endif %}</button>
+    </form>
+
+    {% if mon_avis %}
+    <form method="post" action="{% url 'supprimer_avis' restaurant.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" onclick="return confirm('Supprimer votre avis ?');">Supprimer mon avis</button>
+    </form>
+    {% endif %}
+
+    <p><a href="{% url 'map' %}">← Retour à la carte</a></p>
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Carte GeoDjango — Restaurants de Dakar</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+        }
+
+        /* EN-TÊTE */
+        header {
+            background: #1b4332;
+            color: #fff;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        header h1::before {
+            content: "🍽️ ";
+        }
+
+        .auth-box {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auth-box a {
+            color: #d8f3dc;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-box a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-logout {
+            background: #52796f;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-logout:hover {
+            background: #40605a;
+        }
+
+        /* CONTENEUR CARTE + PANNEAU */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 64px);
+        }
+
+        #mapid {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* PANNEAU DE CONTRÔLE FLOTTANT */
+        .control-panel {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 1000;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            padding: 14px;
+            width: 260px;
+            max-width: 90vw;
+        }
+
+        .control-panel h3 {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            color: #1b4332;
+        }
+
+        .control-panel input,
+        .control-panel select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+
+        .control-panel button {
+            flex: 1;
+            padding: 8px 6px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.15s;
+        }
+
+        .control-panel button:hover {
+            opacity: 0.85;
+        }
+
+        .control-panel button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-primary { background: #2d6a4f; color: #fff; }
+        .btn-secondary { background: #e9ecef; color: #333; }
+        .btn-accent { background: #40916c; color: #fff; }
+        .btn-track { background: #1b4332; color: #fff; }
+        .btn-stop { background: #b23a48; color: #fff; }
+
+        /* POPUPS LEAFLET */
+        .leaflet-popup-content {
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .popup-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1b4332;
+            margin-bottom: 4px;
+        }
+
+        .popup-link {
+            display: inline-block;
+            margin-top: 6px;
+            background: #2d6a4f;
+            color: #fff !important;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none !important;
+            font-size: 0.82rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Restaurants de Dakar — Suivi en temps réel</h1>
+
+        {% if user.is_authenticated %}
+            <div class="auth-box">
+                <span>👤 {{ user.username }}</span>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Se déconnecter</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="auth-box">
+                <a href="{% url 'login' %}">Se connecter</a>
+                <span>|</span>
+                <a href="{% url 'signup' %}">S'inscrire</a>
+            </div>
+        {% endif %}
+    </header>
+
+    <div class="map-wrapper">
+
+        <div class="control-panel">
+            <h3>🔎 Rechercher un restaurant</h3>
+            <input type="text" id="searchInput" placeholder="Nom du restaurant...">
+            <select id="categorieSelect">
+                <option value="">Toutes catégories</option>
+                <option value="Sénégalais">Sénégalais</option>
+                <option value="Fruits de mer">Fruits de mer</option>
+                <option value="Gastronomique">Gastronomique</option>
+                <option value="Grillades">Grillades</option>
+                <option value="Café">Café</option>
+                <option value="Italien">Italien</option>
+                <option value="Street food">Street food</option>
+            </select>
+
+            <div class="btn-row">
+                <button id="searchBtn" class="btn-primary">Rechercher</button>
+                <button id="resetBtn" class="btn-secondary">Réinitialiser</button>
+            </div>
+
+            <div class="btn-row">
+                <button id="nearMeBtn" class="btn-accent">📍 Autour de moi</button>
+            </div>
+
+            <div class="btn-row">
+                <button id="trackBtn" class="btn-track">▶️ Suivi</button>
+                <button id="stopTrackBtn" class="btn-stop" disabled>⏹️ Stop</button>
+            </div>
+        </div>
+
+        <div id="mapid"></div>
+
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var mymap = L.map('mapid').setView([14.6928, -17.4441], 12);
+
+       L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', {
+       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+       maxZoom: 19
+       }).addTo(mymap);
+
+        L.marker([14.6928, -17.4441])
+          .addTo(mymap)
+          .bindPopup("Dakar")
+          .openPopup();
+
+        // POINTS D'INTERET
+        fetch('/tracking/points_data/')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                    }
+                }).addTo(mymap);
+            });
+
+        // ZONES
+        fetch('/tracking/zones_data/')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function () {
+                        return { color: "#2196f3", weight: 3, opacity: 0.5, fillOpacity: 0.15 };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                    }
+                }).addTo(mymap);
+            });
+
+        // ROUTES
+        fetch('/tracking/routes_data/')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function () {
+                        return { color: "#e63946", weight: 4, opacity: 0.7 };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.name) {
+                            layer.bindPopup(feature.properties.name);
+                        }
+                    }
+                }).addTo(mymap);
+            });
+
+        // RESTAURANTS
+        var restaurantIcon = L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        });
+
+        var restaurantLayer = L.layerGroup().addTo(mymap);
+
+        function loadRestaurants(query) {
+            restaurantLayer.clearLayers();
+            var url = '/tracking/restaurants_data/';
+            if (query) {
+                url += '?' + query;
+            }
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    L.geoJSON(data, {
+                        pointToLayer: function (feature, latlng) {
+                            return L.marker(latlng, { icon: restaurantIcon });
+                        },
+                        onEachFeature: function (feature, layer) {
+                            const props = feature.properties;
+                            let popupContent = `<div class="popup-title">${props.nom}</div>`;
+                            if (props.description) popupContent += `${props.description}<br>`;
+                            popupContent += `📍 ${props.adresse}<br>`;
+                            if (props.telephone) popupContent += `📞 ${props.telephone}<br>`;
+                            if (props.horaires) popupContent += `🕒 ${props.horaires}<br>`;
+                            if (props.categorie) popupContent += `🍽️ ${props.categorie}<br>`;
+                            if (props.distance_km !== undefined) popupContent += `📏 ${props.distance_km} km<br>`;
+                            popupContent += `<a class="popup-link" href="/tracking/restaurant/${feature.id}/">Voir le menu</a>`;
+                            layer.bindPopup(popupContent);
+                        }
+                    }).addTo(restaurantLayer);
+                });
+        }
+
+        loadRestaurants();
+
+        // RECHERCHE
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            const q = document.getElementById('searchInput').value;
+            const categorie = document.getElementById('categorieSelect').value;
+            const params = new URLSearchParams();
+            if (q) params.append('q', q);
+            if (categorie) params.append('categorie', categorie);
+            loadRestaurants(params.toString());
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', function () {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categorieSelect').value = '';
+            loadRestaurants();
+        });
+
+        // AUTOUR DE MOI
+        document.getElementById('nearMeBtn').addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                alert("La géolocalisation n'est pas supportée par votre navigateur.");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(function (position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                mymap.setView([lat, lon], 14);
+                L.marker([lat, lon], { icon: L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })}).addTo(mymap).bindPopup("Vous êtes ici").openPopup();
+
+                const params = new URLSearchParams();
+                params.append('lat', lat);
+                params.append('lon', lon);
+                params.append('rayon', 5);
+                loadRestaurants(params.toString());
+            }, function (error) {
+                alert("Impossible de récupérer votre position : " + error.message);
+            });
+        });
+
+        // SUIVI EN TEMPS RÉEL
+        var userMarker = null;
+        var watchId = null;
+        var trackingInterval = null;
+
+        var userIcon = L.icon({
+            iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+            iconSize: [30, 49],
+            iconAnchor: [15, 49]
+        });
+
+        function updateUserPosition(lat, lon) {
+            if (userMarker) {
+                userMarker.setLatLng([lat, lon]);
+            } else {
+                userMarker = L.marker([lat, lon], { icon: userIcon })
+                    .addTo(mymap)
+                    .bindPopup("Votre position actuelle");
+            }
+        }
+
+        document.getElementById('trackBtn').addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                alert("La géolocalisation n'est pas supportée par votre navigateur.");
+                return;
+            }
+
+            watchId = navigator.geolocation.watchPosition(function (position) {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                updateUserPosition(lat, lon);
+                mymap.setView([lat, lon], mymap.getZoom());
+            }, function (error) {
+                alert("Erreur de géolocalisation - Code: " + error.code + " - Message: " + error.message);
+                console.error("Geolocation error:", error);
+            }, {
+                enableHighAccuracy: true,
+                maximumAge: 0
+            });
+
+            trackingInterval = setInterval(function () {
+                if (userMarker) {
+                    const pos = userMarker.getLatLng();
+                    const params = new URLSearchParams();
+                    params.append('lat', pos.lat);
+                    params.append('lon', pos.lng);
+                    params.append('rayon', 5);
+                    loadRestaurants(params.toString());
+                }
+            }, 30000);
+
+            document.getElementById('trackBtn').disabled = true;
+            document.getElementById('stopTrackBtn').disabled = false;
+        });
+
+        document.getElementById('stopTrackBtn').addEventListener('click', function () {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            if (trackingInterval !== null) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+            document.getElementById('trackBtn').disabled = false;
+            document.getElementById('stopTrackBtn').disabled = true;
+        });
+
+    });
+    </script>
+
+</body>
+</html>
