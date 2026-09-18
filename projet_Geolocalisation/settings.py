@@ -82,7 +82,7 @@ CHANNEL_LAYERS = {
 # Database
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"postgis://{config('DB_USER')}:{config('DB_PASSWORD')}@{config('DB_HOST')}:{config('DB_PORT')}/{config('DB_NAME')}"
+        default=config('DATABASE_URL', default='')
     )
 }
 DATABASES['default']['ENGINE'] = 'django.contrib.gis.db.backends.postgis'
