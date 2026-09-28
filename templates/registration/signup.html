@@ -1,15 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Inscription</title>
+    <meta charset="UTF-8">
+    <title>Inscription — Restaurants de Dakar</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #16241F;
+            --sand: #F1E9D8;
+            --sand-2: #E7DBC2;
+            --paprika: #BF4E26;
+            --teal: #1F6E5C;
+            --white: #FFFDF8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+        }
+
+        .brand {
+            font-family: 'Fraunces', serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .brand span { color: var(--paprika); }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 14px 0 24px;
+            color: var(--ink);
+        }
+
+        form p { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--ink);
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--sand-2);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            background: var(--sand);
+            color: var(--ink);
+        }
+
+        input:focus {
+            outline: 2px solid var(--teal);
+            outline-offset: 1px;
+        }
+
+        .helptext {
+            display: block;
+            font-size: 0.76rem;
+            color: #8A8471;
+            margin-top: 4px;
+        }
+
+        .errorlist {
+            list-style: none;
+            color: #8C3226;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: var(--paprika);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.94rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        button:hover { background: #A5401E; }
+
+        .switch {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.86rem;
+            color: #5A5347;
+        }
+
+        .switch a {
+            color: var(--teal);
+            font-weight: 600;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Créer un compte</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">S'inscrire</button>
-    </form>
-    <p>Déjà un compte ? <a href="{% url 'login' %}">Se connecter</a></p>
+
+    <div class="auth-card">
+        <div class="brand">Restaurants de <span>Dakar</span></div>
+        <h1>Créer un compte</h1>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">S'inscrire</button>
+        </form>
+
+        <p class="switch">Déjà un compte ? <a href="{% url 'login' %}">Se connecter</a></p>
+    </div>
+
 </body>
 </html>
