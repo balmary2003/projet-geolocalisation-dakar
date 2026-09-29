@@ -1,1 +1,1 @@
-web: gunicorn projet_Geolocalisation.wsgi:application
+web: gunicorn projet_Geolocalisation.wsgi:application --workers 2 --timeout 30
