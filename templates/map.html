@@ -339,9 +339,15 @@
     <div style="background: #1F6E5C; color: #FFFDF8; padding: 10px 20px; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.2); font-family: 'Inter', sans-serif; font-size: 0.9rem;">
         ✅ {{ message }}
     </div>
-    {% endfor %}
+       {% endfor %}
 </div>
+{% endif %}
 
+    <div class="map-wrapper">
+
+        <button class="panel-toggle" id="panelToggle">🔍</button>
+
+        <div class="control-panel">
             <h3>Rechercher un restaurant</h3>
             <input type="text" id="searchInput" placeholder="Nom du restaurant...">
             <select id="categorieSelect">
