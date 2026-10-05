@@ -489,6 +489,8 @@
                     const coords = f.geometry.coordinates;
                     mymap.flyTo([coords[1], coords[0]], 15);
                     if (markersById[f.id]) markersById[f.id].openPopup();
+                    selectedRestaurant = { lat: coords[1], lon: coords[0], nom: f.properties.nom };
+                    updateItineraryLine();
                 });
                 cardStrip.appendChild(card);
             });
@@ -562,20 +564,29 @@
             else userMarker = L.marker([lat, lon], { icon: userIcon }).addTo(mymap).bindPopup("Votre position actuelle");
         }
 
-        document.getElementById('trackBtn').addEventListener('click', function () {
-        if (!navigator.geolocation) { alert("Géolocalisation non supportée."); return; }
-        watchId = navigator.geolocation.watchPosition(function (position) {
-        const lat = position.coords.latitude, lon = position.coords.longitude;
-        updateUserPosition(lat, lon);
-        mymap.setView([lat, lon], mymap.getZoom());
-        updateItineraryLine();
-    }, function (error) {
-        alert("Erreur de géolocalisation - Code: " + error.code);
-    }, { enableHighAccuracy: true, maximumAge: 0 });
+               document.getElementById('trackBtn').addEventListener('click', function () {
+            if (!navigator.geolocation) { alert("Géolocalisation non supportée."); return; }
 
-    document.getElementById('trackBtn').disabled = true;
-    document.getElementById('stopTrackBtn').disabled = false;
-});
+            document.getElementById('trackBtn').disabled = true;
+            document.getElementById('stopTrackBtn').disabled = false;
+            document.getElementById('trackBtn').textContent = '📡 Localisation...';
+
+            navigator.geolocation.getCurrentPosition(function (position) {
+                updateUserPosition(position.coords.latitude, position.coords.longitude);
+                updateItineraryLine();
+                document.getElementById('trackBtn').textContent = '▶️ Suivi';
+            }, function () {}, { enableHighAccuracy: false, timeout: 5000 });
+
+            watchId = navigator.geolocation.watchPosition(function (position) {
+                const lat = position.coords.latitude, lon = position.coords.longitude;
+                updateUserPosition(lat, lon);
+                mymap.setView([lat, lon], mymap.getZoom());
+                updateItineraryLine();
+                document.getElementById('trackBtn').textContent = '▶️ Suivi';
+            }, function (error) {
+                alert("Erreur de géolocalisation - Code: " + error.code);
+            }, { enableHighAccuracy: true, maximumAge: 0 });
+        });
 
     document.getElementById('stopTrackBtn').addEventListener('click', function () {
     if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
