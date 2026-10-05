@@ -159,20 +159,21 @@
         .btn-accent { background: var(--teal); color: var(--white); }
         .btn-track { background: var(--ink); color: var(--sand); }
         .btn-stop { background: #8C3226; color: var(--white); }
-                .panel-toggle {
+        
+          .panel-toggle {
             position: absolute;
-            top: 16px;
+            top: 20px;
             left: 16px;
             z-index: 1100;
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            background: var(--ink);
-            color: var(--sand);
-            border: none;
-            font-size: 1.2rem;
+            background: var(--paprika);
+            color: var(--white);
+            border: 2px solid var(--white);
+            font-size: 1.25rem;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(22,36,31,0.25);
+            box-shadow: 0 4px 16px rgba(22,36,31,0.35);
             display: none;
         }
 
@@ -342,8 +343,9 @@
     {% endfor %}
 </div>
 {% endif %}
-        <button class="panel-toggle" id="panelToggle">🔍</button>
     <div class="map-wrapper">
+
+        <button class="panel-toggle" id="panelToggle">🔍</button>
 
         <div class="control-panel">
             <h3>Rechercher un restaurant</h3>
