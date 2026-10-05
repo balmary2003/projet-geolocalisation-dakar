@@ -29,13 +29,15 @@
             font-family: 'Inter', sans-serif;
             background: var(--sand);
             color: var(--ink);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         h1, .brand, .card-name, .popup-title {
             font-family: 'Fraunces', serif;
         }
 
-        /* HEADER */
         header {
             background: var(--ink);
             color: var(--sand);
@@ -53,9 +55,7 @@
             letter-spacing: 0.2px;
         }
 
-        .brand span {
-            color: var(--gold);
-        }
+        .brand span { color: var(--gold); }
 
         .auth-box {
             font-size: 0.88rem;
@@ -86,16 +86,14 @@
 
         .btn-logout:hover { background: #A5401E; }
 
-        /* CARTE */
         .map-wrapper {
             position: relative;
             width: 100%;
-            height: calc(100vh - 68px);
+            flex: 1;
         }
 
         #mapid { height: 100%; width: 100%; }
 
-        /* PANNEAU DE RECHERCHE */
         .control-panel {
             position: absolute;
             top: 16px;
@@ -159,20 +157,21 @@
         .btn-accent { background: var(--teal); color: var(--white); }
         .btn-track { background: var(--ink); color: var(--sand); }
         .btn-stop { background: #8C3226; color: var(--white); }
-                .panel-toggle {
+
+        .panel-toggle {
             position: absolute;
-            top: 16px;
+            top: 20px;
             left: 16px;
             z-index: 1100;
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            background: var(--ink);
-            color: var(--sand);
-            border: none;
-            font-size: 1.2rem;
+            background: var(--paprika);
+            color: var(--white);
+            border: 2px solid var(--white);
+            font-size: 1.25rem;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(22,36,31,0.25);
+            box-shadow: 0 4px 16px rgba(22,36,31,0.35);
             display: none;
         }
 
@@ -189,10 +188,9 @@
             }
             .control-panel.open { display: block; }
 
-            header {
-                padding: 12px 16px;
-            }
-            .brand { font-size: 1.05rem; }
+            header { padding: 10px 14px; }
+            .brand { font-size: 0.95rem; }
+            .auth-box { font-size: 0.8rem; }
 
             .control-panel button {
                 padding: 11px 6px;
@@ -202,11 +200,8 @@
             .resto-card { width: 155px; padding: 10px; }
             .card-name { font-size: 0.9rem; }
             .card-meta { font-size: 0.72rem; }
-
-            .map-wrapper { height: calc(100vh - 60px); }
         }
 
-        /* BANDE DE CARTES RESTAURANTS */
         .card-strip {
             position: absolute;
             bottom: 0;
@@ -255,15 +250,9 @@
             line-height: 1.2;
         }
 
-        .card-meta {
-            font-size: 0.76rem;
-            color: #5A5347;
-        }
+        .card-meta { font-size: 0.76rem; color: #5A5347; }
 
-        /* POPUPS LEAFLET */
-        .leaflet-popup-content-wrapper {
-            border-radius: 12px;
-        }
+        .leaflet-popup-content-wrapper { border-radius: 12px; }
 
         .leaflet-popup-content {
             font-family: 'Inter', sans-serif;
@@ -301,7 +290,8 @@
             font-size: 0.82rem;
             font-weight: 600;
         }
-                @media (max-width: 680px) {
+
+        @media (max-width: 680px) {
             main { padding: 20px 14px 50px; }
             .resto-header h1 { font-size: 1.35rem; }
             .infos { flex-direction: column; gap: 6px; }
@@ -342,8 +332,10 @@
     {% endfor %}
 </div>
 {% endif %}
-        <button class="panel-toggle" id="panelToggle">🔍</button>
+
     <div class="map-wrapper">
+
+        <button class="panel-toggle" id="panelToggle">🔍</button>
 
         <div class="control-panel">
             <h3>Rechercher un restaurant</h3>
@@ -380,7 +372,6 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-                // Panneau repliable sur mobile
         var controlPanel = document.querySelector('.control-panel');
         var panelToggle = document.getElementById('panelToggle');
         if (window.innerWidth > 680) {
@@ -389,6 +380,7 @@
         panelToggle.addEventListener('click', function () {
             controlPanel.classList.toggle('open');
         });
+
         var mymap = L.map('mapid').setView([14.6928, -17.4441], 12);
 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
@@ -398,7 +390,6 @@
 
         L.marker([14.6928, -17.4441]).addTo(mymap).bindPopup("Dakar").openPopup();
 
-        // Palette de badges par catégorie
         var categoryColors = {
             'Sénégalais': '#BF4E26',
             'Fruits de mer': '#1F6E5C',
@@ -410,7 +401,6 @@
         };
         function tagColor(cat) { return categoryColors[cat] || '#5A5347'; }
 
-        // POINTS D'INTERET
         fetch('/tracking/points_data/')
             .then(r => r.json())
             .then(data => {
@@ -423,7 +413,6 @@
                 }).addTo(mymap);
             });
 
-        // ZONES
         fetch('/tracking/zones_data/')
             .then(r => r.json())
             .then(data => {
@@ -437,7 +426,6 @@
                 }).addTo(mymap);
             });
 
-        // ROUTES
         fetch('/tracking/routes_data/')
             .then(r => r.json())
             .then(data => {
@@ -451,7 +439,6 @@
                 }).addTo(mymap);
             });
 
-        // RESTAURANTS
         var restaurantIcon = L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
             shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
@@ -509,10 +496,10 @@
                             markersById[feature.id] = layer;
 
                             layer.on('click', function () {
-                            const coords = feature.geometry.coordinates;
-                            selectedRestaurant = { lat: coords[1], lon: coords[0], nom: feature.properties.nom };
-                            updateItineraryLine();
-                        });
+                                const coords = feature.geometry.coordinates;
+                                selectedRestaurant = { lat: coords[1], lon: coords[0], nom: feature.properties.nom };
+                                updateItineraryLine();
+                            });
                         }
                     }).addTo(restaurantLayer);
                     renderCardStrip(data.features);
@@ -550,7 +537,7 @@
             });
         });
 
-        var userMarker = null, watchId = null, trackingInterval = null;
+        var userMarker = null, watchId = null;
         var userIcon = L.icon({
             iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
             shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
@@ -563,66 +550,75 @@
         }
 
         document.getElementById('trackBtn').addEventListener('click', function () {
-        if (!navigator.geolocation) { alert("Géolocalisation non supportée."); return; }
-        watchId = navigator.geolocation.watchPosition(function (position) {
-        const lat = position.coords.latitude, lon = position.coords.longitude;
-        updateUserPosition(lat, lon);
-        mymap.setView([lat, lon], mymap.getZoom());
-        updateItineraryLine();
-    }, function (error) {
-        alert("Erreur de géolocalisation - Code: " + error.code);
-    }, { enableHighAccuracy: true, maximumAge: 0 });
+            if (!navigator.geolocation) { alert("Géolocalisation non supportée."); return; }
 
-    document.getElementById('trackBtn').disabled = true;
-    document.getElementById('stopTrackBtn').disabled = false;
-});
+            document.getElementById('trackBtn').disabled = true;
+            document.getElementById('stopTrackBtn').disabled = false;
+            document.getElementById('trackBtn').textContent = '📡 Localisation...';
 
-    document.getElementById('stopTrackBtn').addEventListener('click', function () {
-    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-    if (itineraryLine) {
-        mymap.removeLayer(itineraryLine);
-        itineraryLine = null;
-    }
-    document.getElementById('trackBtn').disabled = false;
-    document.getElementById('stopTrackBtn').disabled = true;
-});
-            
+            navigator.geolocation.getCurrentPosition(function (position) {
+                updateUserPosition(position.coords.latitude, position.coords.longitude);
+                updateItineraryLine();
+                document.getElementById('trackBtn').textContent = '▶️ Suivi';
+            }, function () {}, { enableHighAccuracy: false, timeout: 5000 });
+
+            watchId = navigator.geolocation.watchPosition(function (position) {
+                const lat = position.coords.latitude, lon = position.coords.longitude;
+                updateUserPosition(lat, lon);
+                mymap.setView([lat, lon], mymap.getZoom());
+                updateItineraryLine();
+                document.getElementById('trackBtn').textContent = '▶️ Suivi';
+            }, function (error) {
+                alert("Erreur de géolocalisation - Code: " + error.code);
+            }, { enableHighAccuracy: true, maximumAge: 0 });
+        });
+
+        document.getElementById('stopTrackBtn').addEventListener('click', function () {
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            if (itineraryLine) {
+                mymap.removeLayer(itineraryLine);
+                itineraryLine = null;
+            }
+            document.getElementById('trackBtn').disabled = false;
+            document.getElementById('stopTrackBtn').disabled = true;
+        });
+
         setTimeout(function () {
-        const fm = document.getElementById('flashMessages');
-        if (fm) fm.style.transition = 'opacity 0.5s'; if (fm) fm.style.opacity = '0';
-        setTimeout(function () { if (fm) fm.remove(); }, 500);
-    }, 4000);
-        // ITINÉRAIRE automatique vers le restaurant sélectionné
-    var selectedRestaurant = null;
-    var itineraryLine = null;
+            const fm = document.getElementById('flashMessages');
+            if (fm) { fm.style.transition = 'opacity 0.5s'; fm.style.opacity = '0'; }
+            setTimeout(function () { if (fm) fm.remove(); }, 500);
+        }, 4000);
 
-    function haversine(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
+        var selectedRestaurant = null;
+        var itineraryLine = null;
 
-    function updateItineraryLine() {
-        if (!userMarker || !selectedRestaurant) return;
-
-        if (itineraryLine) {
-            mymap.removeLayer(itineraryLine);
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         }
-        const userPos = userMarker.getLatLng();
-        const destPos = L.latLng(selectedRestaurant.lat, selectedRestaurant.lon);
-        const distance = haversine(userPos.lat, userPos.lng, selectedRestaurant.lat, selectedRestaurant.lon);
 
-        itineraryLine = L.polyline([userPos, destPos], {
-            color: '#BF4E26', weight: 4, dashArray: '8,8'
-        }).addTo(mymap);
+        function updateItineraryLine() {
+            if (!userMarker || !selectedRestaurant) return;
 
-        itineraryLine.bindTooltip(
-            `🧭 ${selectedRestaurant.nom} — ${distance.toFixed(2)} km`,
-            { permanent: true, direction: 'center', className: 'itineraire-tooltip' }
-        );
-    }
+            if (itineraryLine) {
+                mymap.removeLayer(itineraryLine);
+            }
+            const userPos = userMarker.getLatLng();
+            const destPos = L.latLng(selectedRestaurant.lat, selectedRestaurant.lon);
+            const distance = haversine(userPos.lat, userPos.lng, selectedRestaurant.lat, selectedRestaurant.lon);
+
+            itineraryLine = L.polyline([userPos, destPos], {
+                color: '#BF4E26', weight: 4, dashArray: '8,8'
+            }).addTo(mymap);
+
+            itineraryLine.bindTooltip(
+                `🧭 ${selectedRestaurant.nom} — ${distance.toFixed(2)} km`,
+                { permanent: true, direction: 'center', className: 'itineraire-tooltip' }
+            );
+        }
     });
     </script>
 
